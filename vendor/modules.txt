@@ -1,2 +1,4 @@
+# github.com/hashicorp/logutils v1.0.0
+github.com/hashicorp/logutils
 # github.com/jessevdk/go-flags v1.4.0
 github.com/jessevdk/go-flags
