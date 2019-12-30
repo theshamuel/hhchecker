@@ -16,7 +16,7 @@ import (
 	"syscall"
 	"time"
 )
-
+//Flags options
 type Opts struct {
 	URL           string `long:"url" env:"URL" required:"true" description:"url" default:"localhost"`
 	From          string `long:"from" env:"EMAIL_FROM" required:"true" description:"the source email address"`

@@ -18,12 +18,12 @@ RUN \
 #linter GolangCI
 RUN \
     if [ -z "$SKIP_LINTER" ]; then \
-    golangci-lint run --config .golangci.yml ./... ; fi
+    golangci-lint run --config .golangci.yml ; fi
 
 #linter Metalinter
 RUN \
     if [ -z "$SKIP_LINTER" ]; then \
-    gometalinter ./... ; fi
+    gometalinter ; fi
 
 RUN \
     if [ -z "$VER" ] ; then \
