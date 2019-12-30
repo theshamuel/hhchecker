@@ -1,0 +1,23 @@
+version: '2'
+
+services:
+  http-checker:
+    build: .
+    hostname: http-health-checker
+    container_name: http-health-checker
+    restart: always
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "2"
+    environment:
+      - EMAIL_FROM
+      - EMAIL_TO
+      - EMAIL_CC
+      - EMAIL_SUBJECT
+      - EMAIL_TEXT
+      - TARGET_URL
+      - MAILGUN_API_URL
+      - BASIC_USER
+      - BASIC_PASSWORD
