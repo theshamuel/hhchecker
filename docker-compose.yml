@@ -21,3 +21,4 @@ services:
       - MAILGUN_API_URL
       - BASIC_USER
       - BASIC_PASSWORD
+      - TIMEOUT
