@@ -12,7 +12,6 @@ WORKDIR /build/
 
 #test
 RUN \
-    printenv &&\
     if [ -z "$SKIP_TEST" ]; then \
     go test -timeout=30s ./...; fi
 
