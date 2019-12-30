@@ -24,8 +24,8 @@ type Opts struct {
 	Cc            string `long:"cc" env:"EMAIL_CC" required:"true" description:"the cc email address"`
 	Subject       string `long:"subject" env:"EMAIL_SUBJECT" required:"true" description:"the subject of email"`
 	Text          string `long:"text" env:"EMAIL_TEXT" required:"true" description:"the text of email not more 255 letters"`
-	TargetUrl     string `long:"targetUrl" env:"TARGET_URL" required:"true" description:"the URL what you need to healthcheck"`
-	MailgunApiUrl string `long:"mailgunApiUrl" env:"MAILGUN_API_URL" required:"true" description:"the mailgun API URL for sending notification"`
+	TargetURL     string `long:"targetUrl" env:"TARGET_URL" required:"true" description:"the URL what you need to healthcheck"`
+	MailgunAPIURL string `long:"mailgunApiUrl" env:"MAILGUN_API_URL" required:"true" description:"the mailgun API URL for sending notification"`
 	BasicUser     string `long:"basicUser" env:"BASIC_USER" required:"true" description:"the user for mailgun api"`
 	BasicPassword string `long:"basicPassword" env:"BASIC_PASSWORD" required:"true" description:"the password of user for mailgun api"`
 }
@@ -43,7 +43,7 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.TargetUrl, version)
+	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.TargetURL, version)
 	var client = &http.Client{}
 
 	//prepare the reader instances to encode
@@ -55,9 +55,9 @@ func main() {
 		"text":    strings.NewReader(opts.Text),
 	}
 	for range time.Tick(time.Minute * 60) {
-		response, err := http.Get(opts.TargetUrl)
+		response, err := http.Get(opts.TargetURL)
 		if err != nil || response.StatusCode != 200 {
-			err := SendEmail(client, opts.MailgunApiUrl, values, opts.BasicUser, opts.BasicPassword)
+			err := SendEmail(client, opts.MailgunAPIURL, values, opts.BasicUser, opts.BasicPassword)
 			if err != nil {
 				log.Printf("[ERROR] %+v", err)
 			}
