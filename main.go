@@ -36,7 +36,7 @@ var opts struct {
 	Telegram struct {
 		Enabled   bool   `long:"enabled" env:"ENABLED" description:"enable telegram provider"`
 		BotAPIKey string `long:"botApiKey" env:"BOT_API_KEY" required:"true" description:"the telegram bot api key"`
-		ChannelId string `long:"channelId" env:"CHANNEL_ID" description:"the channel id"`
+		ChannelId string `long:"channelId" env:"CHANNEL_ID" description:"the channel id without leading symbol @"`
 		Message   string `long:"message" env:"MESSAGE" description:"the text message not more 255 letters"`
 	} `group:"telegram" namespace:"telegram" env-namespace:"TELEGRAM"`
 }
