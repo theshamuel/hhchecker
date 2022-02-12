@@ -25,7 +25,7 @@ var opts struct {
 
 	Email struct {
 		Enabled       bool   `long:"enabled" env:"ENABLED" description:"enable email mailgun provider"`
-		From          string `long:"from" env:"FROM"description:"the source email address"`
+		From          string `long:"from" env:"FROM" description:"the source email address"`
 		To            string `long:"to" env:"TO" description:"the target email address"`
 		Cc            string `long:"cc" env:"CC" description:"the cc email address"`
 		Subject       string `long:"subject" env:"SUBJECT" description:"the subject of email"`
