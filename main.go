@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/hashicorp/logutils"
 	"github.com/jessevdk/go-flags"
 	"io"
@@ -17,26 +18,33 @@ import (
 	"time"
 )
 
-//Opts stores flags options
-type Opts struct {
-	URL           string        `long:"url" env:"URL" required:"true" description:"url" default:"localhost"`
-	From          string        `long:"from" env:"EMAIL_FROM" required:"true" description:"the source email address"`
-	To            string        `long:"to" env:"EMAIL_TO" required:"true" description:"the target email address"`
-	Cc            string        `long:"cc" env:"EMAIL_CC" required:"true" description:"the cc email address"`
-	Subject       string        `long:"subject" env:"EMAIL_SUBJECT" required:"true" description:"the subject of email"`
-	Text          string        `long:"text" env:"EMAIL_TEXT" required:"true" description:"the text of email not more 255 letters"`
-	TargetURL     string        `long:"targetUrl" env:"TARGET_URL" required:"true" description:"the URL what you need to healthcheck"`
-	MailgunAPIURL string        `long:"mailgunApiUrl" env:"MAILGUN_API_URL" required:"true" description:"the mailgun API URL for sending notification"`
-	BasicUser     string        `long:"basicUser" env:"BASIC_USER" required:"true" description:"the user for mailgun api"`
-	BasicPassword string        `long:"basicPassword" env:"BASIC_PASSWORD" required:"true" description:"the password of user for mailgun api"`
-	Timeout       time.Duration `long:"timeout" env:"TIMEOUT" required:"true" description:"the timeout for health probe in seconds"`
+var opts struct {
+	URL     string        `long:"url" env:"URL" required:"true" description:"the URL what you need to healthcheck"`
+	Timeout time.Duration `long:"timeout" env:"TIMEOUT" default:"300s" description:"the timeout for health probe in seconds"`
+
+	Email struct {
+		Enabled       bool   `long:"enabled" env:"ENABLED" description:"enable email mailgun provider"`
+		From          string `long:"from" env:"FROM"description:"the source email address"`
+		To            string `long:"to" env:"TO" description:"the target email address"`
+		Cc            string `long:"cc" env:"CC" description:"the cc email address"`
+		Subject       string `long:"subject" env:"SUBJECT" description:"the subject of email"`
+		Text          string `long:"text" env:"TEXT" description:"the text of email not more 255 letters"`
+		MailgunAPIURL string `long:"mailgunApiUrl" env:"MAILGUN_API_URL" description:"the mailgun API URL for sending notification"`
+		MailgunAPIKey string `long:"mailgunApiKey" env:"MAILGUN_API_KEY" description:"the token for mailgun api"`
+	} `group:"email" namespace:"email" env-namespace:"EMAIL"`
+
+	Telegram struct {
+		Enabled   bool   `long:"enabled" env:"ENABLED" description:"enable telegram provider"`
+		BotAPIKey string `long:"botApiKey" env:"BOT_API_KEY" required:"true" description:"the telegram bot api key"`
+		ChannelId string `long:"channelId" env:"CHANNEL_ID" description:"the channel id"`
+		Message   string `long:"message" env:"MESSAGE" description:"the text message not more 255 letters"`
+	} `group:"telegram" namespace:"telegram" env-namespace:"TELEGRAM"`
 }
 
 var version = "unknown"
 
 func main() {
 	setupLogLevel(false)
-	var opts Opts
 	p := flags.NewParser(&opts, flags.Default)
 	if _, err := p.Parse(); err != nil {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
@@ -45,30 +53,57 @@ func main() {
 			os.Exit(1)
 		}
 	}
-	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.TargetURL, version)
+	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.URL, version)
 	var client = &http.Client{}
 
 	//prepare the reader instances to encode
 	values := map[string]io.Reader{
-		"from":    strings.NewReader(opts.From),
-		"to":      strings.NewReader(opts.To),
-		"cc":      strings.NewReader(opts.Cc),
-		"subject": strings.NewReader(opts.Subject),
-		"text":    strings.NewReader(opts.Text),
+		"from":    strings.NewReader(opts.Email.From),
+		"to":      strings.NewReader(opts.Email.To),
+		"cc":      strings.NewReader(opts.Email.Cc),
+		"subject": strings.NewReader(opts.Email.Subject),
+		"text":    strings.NewReader(opts.Email.Text),
 	}
 	for range time.Tick(time.Second * opts.Timeout) {
-		response, err := http.Get(opts.TargetURL)
+		response, err := http.Get(opts.URL)
 		if err != nil || response.StatusCode != 200 {
-			err := SendEmail(client, opts.MailgunAPIURL, values, opts.BasicUser, opts.BasicPassword)
-			if err != nil {
-				log.Printf("[ERROR] %+v", err)
+			if opts.Email.Enabled {
+				err := SendEmail(client, opts.Email.MailgunAPIURL, values, opts.Email.MailgunAPIKey)
+				if err != nil {
+					log.Printf("[ERROR] error occurs during sending email: %+v", err)
+				}
+			}
+			if opts.Telegram.Enabled {
+				err := SendTelegramMessage(client, opts.Telegram.BotAPIKey, opts.Telegram.ChannelId, opts.Telegram.Message)
+				if err != nil {
+					log.Printf("[ERROR] error occurs during sending telegram message: %+v", err)
+				}
 			}
 		}
 	}
 }
 
+//SendTelegramMessage sending text message into public telegram channel
+func SendTelegramMessage(client *http.Client, botAPIKey, channelId, message string) error {
+	urlPattern := "https://api.telegram.org/bot%s/sendMessage?chat_id=@%s&text=%s"
+	req, err := http.NewRequest("GET", fmt.Sprintf(urlPattern, botAPIKey, channelId, message), nil)
+	if err != nil {
+		return err
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(res.Body)
+		log.Printf("[ERROR] Telegram response bad status: %s\n", res.Status)
+		log.Printf("[ERROR] Telegram response bad body: %s\n", string(body))
+	}
+	return nil
+}
+
 //SendEmail sending email via MailGun
-func SendEmail(client *http.Client, url string, values map[string]io.Reader, basicUser, basicPassword string) (err error) {
+func SendEmail(client *http.Client, url string, values map[string]io.Reader, apiKey string) (err error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	for key, r := range values {
@@ -89,7 +124,11 @@ func SendEmail(client *http.Client, url string, values map[string]io.Reader, bas
 		return err
 	}
 	req.Header.Set("Content-Type", w.FormDataContentType())
-	req.SetBasicAuth(basicUser, basicPassword)
+	credentials := strings.Split(apiKey, ":")
+	if len(credentials) != 2 {
+		return fmt.Errorf("MAILGUN_API_KEY is not valid")
+	}
+	req.SetBasicAuth(credentials[0], credentials[1])
 	res, err := client.Do(req)
 	if err != nil {
 		return err

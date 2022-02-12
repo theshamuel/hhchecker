@@ -12,13 +12,20 @@ services:
         max-size: "10m"
         max-file: "2"
     environment:
+      - TZ=Europe/Dublin
+      - URL
+      - TIMEOUT
+      - EMAIL_ENABLED
       - EMAIL_FROM
       - EMAIL_TO
       - EMAIL_CC
       - EMAIL_SUBJECT
       - EMAIL_TEXT
-      - TARGET_URL
       - MAILGUN_API_URL
       - BASIC_USER
       - BASIC_PASSWORD
       - TIMEOUT
+      - TELEGRAM_ENABLED
+      - TELEGRAM_BOT_API_KEY
+      - TELEGRAM_CHANNEL_ID
+      - TELEGRAM_MESSAGE
