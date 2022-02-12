@@ -126,7 +126,7 @@ func SendEmail(client *http.Client, url string, values map[string]io.Reader, api
 	req.Header.Set("Content-Type", w.FormDataContentType())
 	credentials := strings.Split(apiKey, ":")
 	if len(credentials) != 2 {
-		return fmt.Errorf("MAILGUN_API_KEY is not valid")
+		return fmt.Errorf("[ERROR]: MAILGUN_API_KEY is not valid")
 	}
 	req.SetBasicAuth(credentials[0], credentials[1])
 	res, err := client.Do(req)
