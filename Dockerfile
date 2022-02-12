@@ -1,4 +1,4 @@
-FROM theshamuel/baseimg-go-build:1.0 as builder
+FROM ghcr.io/theshamuel/baseimg-go-build:1.16.4 as builder
 
 ARG VER
 ARG SKIP_TEST
@@ -28,7 +28,7 @@ RUN \
     else version=${VER}; fi && \
     go build -o hhchecker -ldflags "-X main.version=$version -s -w" .
 
-FROM theshamuel/baseimg-go-app:latest
+FROM ghcr.io/theshamuel/baseimg-go-app:1.0-alpine3.13
 
 WORKDIR /srv
 COPY --from=builder /build/hhchecker /srv/hhchecker
