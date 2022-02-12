@@ -19,8 +19,9 @@ import (
 )
 
 var opts struct {
-	URL     string        `long:"url" env:"URL" required:"true" description:"the URL what you need to healthcheck"`
-	Timeout time.Duration `long:"timeout" env:"TIMEOUT" default:"300s" description:"the timeout for health probe in seconds"`
+	URL       string        `long:"url" env:"URL" required:"true" description:"the URL what you need to healthcheck"`
+	Timeout   time.Duration `long:"timeout" env:"TIMEOUT" default:"300s" description:"the timeout for health probe in seconds"`
+	MaxAlerts int8          `long:"max-alerts" env:"MAX_ALERTS" default:"3" description:"the max count of alerts in sequence"`
 
 	Email struct {
 		Enabled       bool   `long:"enabled" env:"ENABLED" description:"enable email mailgun provider"`
@@ -55,9 +56,9 @@ func main() {
 	}
 	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.URL, version)
 	var client = &http.Client{}
-
+	var maxAlerts = int8(0)
 	//prepare the reader instances to encode
-	values := map[string]io.Reader{
+	emailValues := map[string]io.Reader{
 		"from":    strings.NewReader(opts.Email.From),
 		"to":      strings.NewReader(opts.Email.To),
 		"cc":      strings.NewReader(opts.Email.Cc),
@@ -66,9 +67,9 @@ func main() {
 	}
 	for range time.Tick(time.Second * opts.Timeout) {
 		response, err := http.Get(opts.URL)
-		if err != nil || response.StatusCode != 200 {
+		if (err != nil || response.StatusCode != 200) && (maxAlerts <= opts.MaxAlerts) {
 			if opts.Email.Enabled {
-				err := SendEmail(client, opts.Email.MailgunAPIURL, values, opts.Email.MailgunAPIKey)
+				err := SendEmail(client, opts.Email.MailgunAPIURL, emailValues, opts.Email.MailgunAPIKey)
 				if err != nil {
 					log.Printf("[ERROR] error occurs during sending email: %+v", err)
 				}
@@ -79,6 +80,9 @@ func main() {
 					log.Printf("[ERROR] error occurs during sending telegram message: %+v", err)
 				}
 			}
+			maxAlerts += 1
+		} else {
+			maxAlerts = 0
 		}
 	}
 }
@@ -103,10 +107,10 @@ func SendTelegramMessage(client *http.Client, botAPIKey, channelId, message stri
 }
 
 //SendEmail sending email via MailGun
-func SendEmail(client *http.Client, url string, values map[string]io.Reader, apiKey string) (err error) {
+func SendEmail(client *http.Client, url string, emailValues map[string]io.Reader, apiKey string) (err error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
-	for key, r := range values {
+	for key, r := range emailValues {
 		var fw io.Writer
 		if fw, err = w.CreateFormField(key); err != nil {
 			return err
