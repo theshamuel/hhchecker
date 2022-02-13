@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/hashicorp/logutils"
-	"github.com/jessevdk/go-flags"
+	"github.com/theshamuel/go-flags"
 	"io"
 	"io/ioutil"
 	"log"
