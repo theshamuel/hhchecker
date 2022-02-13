@@ -36,25 +36,22 @@ var opts struct {
 
 	Telegram struct {
 		Enabled   bool   `long:"enabled" env:"ENABLED" description:"enable telegram provider"`
-		BotAPIKey string `long:"botApiKey" env:"BOT_API_KEY" required:"true" description:"the telegram bot api key"`
-		ChannelId string `long:"channelId" env:"CHANNEL_ID" description:"the channel id without leading symbol @"`
+		BotAPIKey string `long:"botApiKey" env:"BOT_API_KEY" description:"the telegram bot api key"`
+		ChannelID string `long:"channelId" env:"CHANNEL_ID" description:"the channel id without leading symbol @"`
 		Message   string `long:"message" env:"MESSAGE" description:"the text message not more 255 letters"`
 	} `group:"telegram" namespace:"telegram" env-namespace:"TELEGRAM"`
+
+	Debug       bool `long:"debug" env:"DEBUG" description:"debug mode"`
 }
 
 var version = "unknown"
 
 func main() {
-	setupLogLevel(false)
-	p := flags.NewParser(&opts, flags.Default)
-	if _, err := p.Parse(); err != nil {
-		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
-			os.Exit(0)
-		} else {
-			os.Exit(1)
-		}
-	}
+	parseFlags()
+	setupLogLevel(opts.Debug)
+
 	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.URL, version)
+	log.Printf("[DEBUG] list options: %+v", opts)
 	var client = &http.Client{}
 	var maxAlerts = int8(0)
 	//prepare the reader instances to encode
@@ -65,9 +62,10 @@ func main() {
 		"subject": strings.NewReader(opts.Email.Subject),
 		"text":    strings.NewReader(opts.Email.Text),
 	}
-	for range time.Tick(time.Second * opts.Timeout) {
+	for range time.Tick(opts.Timeout) {
 		response, err := http.Get(opts.URL)
-		if (err != nil || response.StatusCode != 200) && (maxAlerts <= opts.MaxAlerts) {
+		log.Printf("[DEBUG] response: %+v", response)
+		if (err != nil || response.StatusCode != 200) && (maxAlerts < opts.MaxAlerts) {
 			if opts.Email.Enabled {
 				err := SendEmail(client, opts.Email.MailgunAPIURL, emailValues, opts.Email.MailgunAPIKey)
 				if err != nil {
@@ -75,22 +73,34 @@ func main() {
 				}
 			}
 			if opts.Telegram.Enabled {
-				err := SendTelegramMessage(client, opts.Telegram.BotAPIKey, opts.Telegram.ChannelId, opts.Telegram.Message)
+				err := SendTelegramMessage(client, opts.Telegram.BotAPIKey, opts.Telegram.ChannelID, opts.Telegram.Message)
 				if err != nil {
 					log.Printf("[ERROR] error occurs during sending telegram message: %+v", err)
 				}
 			}
-			maxAlerts += 1
-		} else {
+			maxAlerts++
+		} else if response != nil && response.StatusCode == 200 {
 			maxAlerts = 0
 		}
 	}
 }
 
+func parseFlags() {
+	p := flags.NewParser(&opts, flags.Default)
+	if _, err := p.Parse(); err != nil {
+		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
+			os.Exit(0)
+		} else {
+			os.Exit(1)
+		}
+	}
+}
+
 //SendTelegramMessage sending text message into public telegram channel
-func SendTelegramMessage(client *http.Client, botAPIKey, channelId, message string) error {
+func SendTelegramMessage(client *http.Client, botAPIKey, channelID, message string) error {
 	urlPattern := "https://api.telegram.org/bot%s/sendMessage?chat_id=@%s&text=%s"
-	req, err := http.NewRequest("GET", fmt.Sprintf(urlPattern, botAPIKey, channelId, message), nil)
+	log.Printf("[DEBUG] telegram url: " + fmt.Sprintf(urlPattern, botAPIKey, channelID, message))
+	req, err := http.NewRequest("GET", fmt.Sprintf(urlPattern, botAPIKey, channelID, message), nil)
 	if err != nil {
 		return err
 	}
