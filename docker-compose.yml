@@ -13,6 +13,7 @@ services:
     environment:
       - TZ=Europe/Dublin
       - URL
+      - MAX_ALERTS
       - TIMEOUT
       - EMAIL_ENABLED
       - EMAIL_FROM
@@ -20,11 +21,10 @@ services:
       - EMAIL_CC
       - EMAIL_SUBJECT
       - EMAIL_TEXT
-      - MAILGUN_API_URL
-      - BASIC_USER
-      - BASIC_PASSWORD
-      - TIMEOUT
+      - EMAIL_MAILGUN_API_URL
+      - EMAIL_MAILGUN_API_KEY
       - TELEGRAM_ENABLED
       - TELEGRAM_BOT_API_KEY
       - TELEGRAM_CHANNEL_ID
       - TELEGRAM_MESSAGE
+      - DEBUG
