@@ -37,7 +37,8 @@ var opts struct {
 	Telegram struct {
 		Enabled   bool   `long:"enabled" env:"ENABLED" description:"enable telegram provider"`
 		BotAPIKey string `long:"botApiKey" env:"BOT_API_KEY" description:"the telegram bot api key"`
-		ChannelID string `long:"channelId" env:"CHANNEL_ID" description:"the channel id without leading symbol @"`
+		ChannelName string `long:"channelName" env:"CHANNEL_NAME" description:"the channel name without leading symbol @ for public channel only"`
+		ChannelID string `long:"channelId" env:"CHANNEL_ID" description:"the channel id for private channel only"`
 		Message   string `long:"message" env:"MESSAGE" description:"the text message not more 255 letters"`
 	} `group:"telegram" namespace:"telegram" env-namespace:"TELEGRAM"`
 
@@ -73,7 +74,7 @@ func main() {
 				}
 			}
 			if opts.Telegram.Enabled {
-				err := SendTelegramMessage(client, opts.Telegram.BotAPIKey, opts.Telegram.ChannelID, opts.Telegram.Message)
+				err := SendTelegramMessage(client, opts.Telegram.BotAPIKey, opts.Telegram.ChannelID, opts.Telegram.ChannelName, opts.Telegram.Message)
 				if err != nil {
 					log.Printf("[ERROR] error occurs during sending telegram message: %+v", err)
 				}
@@ -97,10 +98,17 @@ func parseFlags() {
 }
 
 //SendTelegramMessage sending text message into public telegram channel
-func SendTelegramMessage(client *http.Client, botAPIKey, channelID, message string) error {
-	urlPattern := "https://api.telegram.org/bot%s/sendMessage?chat_id=@%s&text=%s"
-	log.Printf("[DEBUG] telegram url: " + fmt.Sprintf(urlPattern, botAPIKey, channelID, message))
-	req, err := http.NewRequest("GET", fmt.Sprintf(urlPattern, botAPIKey, channelID, message), nil)
+func SendTelegramMessage(client *http.Client, botAPIKey, channelID, channelName, message string) error {
+	urlPattern := "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s"
+	channel := channelID
+	if len(channel) == 0 && len(channelName) > 0{
+		channel = "@" + channelName
+	}
+	if len(channel) == 0 {
+		return fmt.Errorf("channel ID and channel name were not found")
+	}
+	log.Printf("[DEBUG] telegram url: %s", fmt.Sprintf(urlPattern, botAPIKey, channel, message))
+	req, err := http.NewRequest("GET", fmt.Sprintf(urlPattern, botAPIKey, channel, message), nil)
 	if err != nil {
 		return err
 	}
