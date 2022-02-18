@@ -6,4 +6,9 @@ image-dev:
 image-prod:
 	docker build --build-arg VER=${VER} -t ghcr.io/theshamuel/hhchecker:${IMG_VER} .
 
+clean:
+	- docker ps -a | grep -i "/bin/sh -c" | awk '{print $$1}' | xargs -n1 docker rm
+	- docker images | grep -i "none" | awk '{print $$3}' | xargs -n1 docker rmi
+	- docker rmi $$(docker images -q -f dangling=true)
+
 .PHONY: image-prod
