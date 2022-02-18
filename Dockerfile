@@ -5,6 +5,8 @@ ARG SKIP_TEST
 ARG SKIP_LINTER
 ENV GOFLAGS="-mod=vendor"
 
+LABEL org.opencontainers.image.source https://github.com/theshamuel/hhchecker
+
 RUN apk --no-cache add tzdata
 
 ADD . /build/
