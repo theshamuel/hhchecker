@@ -41,7 +41,7 @@ var opts struct {
 	Config struct {
 		Enabled  bool   `long:"enabled" env:"ENABLED" description:"enable getting parameters from config. In that case all parameters will be read only form config"`
 		FileName string `long:"file-name" env:"FILE_NAME" default:"hhchecker.yml" description:"config file name"`
-	} `group:"config" namespace:"config" env-namespace:"config"`
+	} `group:"config" namespace:"config" env-namespace:"CONFIG"`
 }
 
 var version = "unknown"
