@@ -2,7 +2,7 @@ package config
 
 import (
 	"fmt"
-	"github.com/theshamuel/hhchecker/provider"
+	"github.com/theshamuel/hhchecker/app/provider"
 	"gopkg.in/yaml.v3"
 	"io"
 	"net/http"
