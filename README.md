@@ -27,6 +27,10 @@ telegram:
       --telegram.channelId=   the channel id for private channel only [$TELEGRAM_CHANNEL_ID]
       --telegram.message=     the text message not more 255 letters [$TELEGRAM_MESSAGE]
 
+config:
+      --config.enabled        enable getting parameters from config. In that case all parameters will be read only form config [$CONFIG_ENABLED]
+      --config.file-name=     config file name (default: hhchecker.yml) [$CONFIG_FILE_NAME]
+
 Help Options:
   -h, --help                  Show this help message
 ```
