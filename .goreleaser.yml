@@ -1,0 +1,65 @@
+signs:
+  - artifacts: checksum
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+      - arm
+      - 386
+    ignore:
+      - goos: windows
+        goarch: arm
+    dir: app
+    ldflags: "-s -w -X main.txt.version={{.Tag}}-{{.ShortCommit}}-{{.CommitDate}}"
+
+archives:
+  - name_template: "{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}"
+    replacements:
+      386: i386
+      amd64: x86_64
+      darwin: macos
+    format_overrides:
+      - goos: windows
+        format: zip
+    files:
+      - LICENSE
+      - README.md
+
+nfpms:
+  -
+    id: hhchecker
+    package_name: hhchecker
+    file_name_template: "{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}"
+    vendor: Alex Shamuel
+    homepage: https://theshamuel.com
+    maintainer: Alex Shamuel <theshamuel@gmail.com>
+    description: HTTP/HTTPS checker
+    license: MIT
+    formats:
+      - apk
+      - deb
+      - rpm
+    bindir: /usr/bin
+    epoch: 1
+    release: 1
+    contents:
+      - src: hhchecker.service
+        dst: /etc/systemd/system/hhchecker.service
+
+      - src: hhchecker-example.yml
+        dst: /etc/hhchecker/hhchecker.yml
+        type: config
+
+      - src: /usr/bin/hhchecker
+        dst: /usr/local/bin/hhchecker
+        type: "symlink"
+    scripts:
+      postinstall: "etc/post-install.sh"
+      preremove: "etc/pre-remove.sh"
