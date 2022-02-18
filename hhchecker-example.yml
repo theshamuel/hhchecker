@@ -1,0 +1,23 @@
+url: "https://theshamuel.com"
+timeout: "300s"
+max-alerts: 1
+email:
+  enabled: "false"
+  from: ""
+  to: ""
+  cc: ""
+  subject: ""
+  text: ""
+  mailgun:
+    api:
+      url: ""
+      key: ""
+telegram:
+  enabled:  "false"
+  bot-api-key: ""
+  #set up only 1 option: channel.id or channel.name
+  channel:
+    name: ""
+    id: ""
+  message: ""
+debug: "false"

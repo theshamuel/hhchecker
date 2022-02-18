@@ -8,7 +8,7 @@ ENV GOFLAGS="-mod=vendor"
 RUN apk --no-cache add tzdata
 
 ADD . /build/
-WORKDIR /build/
+WORKDIR /build/app
 
 #test
 RUN \
@@ -18,7 +18,7 @@ RUN \
 #linter GolangCI
 RUN \
     if [ -z "$SKIP_LINTER" ]; then \
-    golangci-lint run --config .golangci.yml ; fi
+    golangci-lint run --config ../.golangci.yml ; fi
 
 
 RUN \
@@ -31,7 +31,7 @@ RUN \
 FROM ghcr.io/theshamuel/baseimg-go-app:1.0-alpine3.13
 
 WORKDIR /srv
-COPY --from=builder /build/hhchecker /srv/hhchecker
+COPY --from=builder /build/app/hhchecker /srv/hhchecker
 
 RUN chown -R appuser:appuser /srv && date
 USER appuser
