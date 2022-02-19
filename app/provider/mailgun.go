@@ -13,14 +13,15 @@ import (
 
 // Mailgun provider structure for sending email notification
 type Mailgun struct {
-	URL    string
-	APIKey string
-	Values map[string]io.Reader
+	Domain   string
+	APIKey   string
+	Values   map[string]io.Reader
 	Provider Provider
 }
 
 //Send sending email via MailGun
 func (s *Mailgun) Send() (err error) {
+	url := fmt.Sprintf("https://api.mailgun.net/v3/%s/messages", s.Domain)
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 	for key, r := range s.Values {
@@ -36,7 +37,7 @@ func (s *Mailgun) Send() (err error) {
 	if err := w.Close(); err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", s.URL, &b)
+	req, err := http.NewRequest("POST", url, &b)
 	if err != nil {
 		return err
 	}
