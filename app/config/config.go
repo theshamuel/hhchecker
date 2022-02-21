@@ -60,7 +60,7 @@ func (s *Config) GetCommon() (*CommonOpts, error) {
 	if err != nil {
 		return nil, fmt.Errorf("can't open %s: %w", s.FileName, err)
 	}
-	defer f.Close() //nolint gosec
+	defer f.Close()
 	if err = yaml.NewDecoder(f).Decode(&s.File); err != nil {
 		return nil, fmt.Errorf("can't parse %s: %w", s.FileName, err)
 	}
@@ -79,7 +79,7 @@ func (s *Config) GetProviders(client *http.Client) ([]provider.Interface, error)
 	if err != nil {
 		return nil, fmt.Errorf("can't open %s: %w", s.FileName, err)
 	}
-	defer f.Close() //nolint gosec
+	defer f.Close()
 	if err = yaml.NewDecoder(f).Decode(&s.File); err != nil {
 		return nil, fmt.Errorf("can't parse %s: %w", s.FileName, err)
 	}
