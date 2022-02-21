@@ -18,7 +18,7 @@ import (
 )
 
 var opts struct {
-	CommonOpts *config.CommonOpts
+	config.CommonOpts
 	Email      struct {
 		Enabled       bool   `long:"enabled" env:"ENABLED" description:"enable email mailgun provider"`
 		From          string `long:"from" env:"FROM" description:"the source email address"`
@@ -26,7 +26,7 @@ var opts struct {
 		Cc            string `long:"cc" env:"CC" description:"the cc email address"`
 		Subject       string `long:"subject" env:"SUBJECT" description:"the subject of email"`
 		Text          string `long:"text" env:"TEXT" description:"the text of email not more 255 letters"`
-		MailgunAPIURL string `long:"mailgunApiUrl" env:"MAILGUN_API_URL" description:"the mailgun API URL for sending notification"`
+		Domain        string `long:"domain" env:"DOMAIN" description:"the mailgun API URL for sending notification"`
 		MailgunAPIKey string `long:"mailgunApiKey" env:"MAILGUN_API_KEY" description:"the token for mailgun api"`
 	} `group:"email" namespace:"email" env-namespace:"EMAIL"`
 
@@ -53,15 +53,20 @@ func main() {
 			FileName: opts.Config.FileName,
 		}
 		var err error
-		if opts.CommonOpts, err = cnf.GetCommon(); err != nil {
+		var co *config.CommonOpts
+		if co, err = cnf.GetCommon(); err != nil {
 			panic(fmt.Errorf("[ERROR] can not read config file, %w", err))
 		}
+		opts.URL = co.URL
+		opts.Debug = co.Debug
+		opts.Timeout = co.Timeout
+		opts.MaxAlerts = co.MaxAlerts
+		log.Printf("[DEBUG] config: %+v", cnf.File)
 	}
 
 	setupLogLevel(opts.CommonOpts.Debug)
 
 	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.CommonOpts.URL, version)
-	log.Printf("[DEBUG] list options: %+v", opts)
 	var client = &http.Client{Timeout: 3 * time.Second}
 	var maxAlerts = int8(0)
 	var providers []provider.Interface
@@ -75,7 +80,7 @@ func main() {
 				"subject": strings.NewReader(opts.Email.Subject),
 				"text":    strings.NewReader(opts.Email.Text),
 			},
-			URL:    opts.CommonOpts.URL,
+			Domain: opts.Email.Domain,
 			APIKey: opts.Email.MailgunAPIKey,
 			Provider: provider.Provider{
 				ID:     provider.PIDMailgun,
@@ -106,6 +111,9 @@ func main() {
 			panic(fmt.Errorf("[ERROR] can not read config file, %w", err))
 		}
 	}
+
+	log.Printf("[DEBUG] cli options: %+v", opts)
+
 	for range time.Tick(opts.CommonOpts.Timeout) {
 		response, err := http.Get(opts.CommonOpts.URL)
 		log.Printf("[DEBUG] response: %+v", response)

@@ -1,7 +1,7 @@
 # hhchecker
-The http/https healthchecker with notification by: 
- 1. Email - Mailgun as provider
- 2. Telegram public/private channel
+The http/https healthchecker with notification by:
+  1. Email - Mailgun as provider
+  2. Telegram public/private channel
 
 ### Application options
 ```
@@ -17,7 +17,7 @@ email:
       --email.cc=             the cc email address [$EMAIL_CC]
       --email.subject=        the subject of email [$EMAIL_SUBJECT]
       --email.text=           the text of email not more 255 letters [$EMAIL_TEXT]
-      --email.mailgunApiUrl=  the mailgun API URL for sending notification [$EMAIL_MAILGUN_API_URL]
+      --email.domain=         the mailgun API URL for sending notification [$EMAIL_DOMAIN]
       --email.mailgunApiKey=  the token for mailgun api [$EMAIL_MAILGUN_API_KEY]
 
 telegram:
@@ -28,10 +28,10 @@ telegram:
       --telegram.message=     the text message not more 255 letters [$TELEGRAM_MESSAGE]
 
 config:
-      --config.enabled        enable getting parameters from config. In that case all parameters will be read only form config [$CONFIG_ENABLED]
+      --config.enabled        enable getting parameters from config. In that case all parameters will be read only form config
+                              [$CONFIG_ENABLED]
       --config.file-name=     config file name (default: hhchecker.yml) [$CONFIG_FILE_NAME]
 
 Help Options:
   -h, --help                  Show this help message
 ```
-
