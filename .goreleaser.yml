@@ -17,7 +17,7 @@ builds:
       - goos: windows
         goarch: arm
     dir: app
-    ldflags: "-s -w -X main.txt.version={{.Tag}}-{{.ShortCommit}}-{{.CommitDate}}"
+    ldflags: "-s -w -X main.version={{.Tag}}-{{.ShortCommit}}-{{.CommitDate}}"
 
 archives:
   - name_template: "{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}"
