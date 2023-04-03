@@ -19,7 +19,7 @@ import (
 
 var opts struct {
 	config.CommonOpts
-	Email      struct {
+	Email struct {
 		Enabled       bool   `long:"enabled" env:"ENABLED" description:"enable email mailgun provider"`
 		From          string `long:"from" env:"FROM" description:"the source email address"`
 		To            string `long:"to" env:"TO" description:"the target email address"`
@@ -117,11 +117,14 @@ func main() {
 	for range time.Tick(opts.CommonOpts.Timeout) {
 		response, err := http.Get(opts.CommonOpts.URL)
 		log.Printf("[DEBUG] response: %+v", response)
-		if (err != nil || response.StatusCode != 200) && (maxAlerts < opts.CommonOpts.MaxAlerts) {
-			for _, provider := range providers {
-				if err := provider.Send(); err != nil {
-					log.Printf("[ERROR] error occurs during sending [%s] message: %+v", provider.GetID(), err)
+		if err != nil || response.StatusCode != 200 {
+			if maxAlerts >= opts.CommonOpts.MaxAlerts {
+				for _, provider := range providers {
+					if err := provider.Send(); err != nil {
+						log.Printf("[ERROR] error occurs during sending [%s] message: %+v", provider.GetID(), err)
+					}
 				}
+				maxAlerts = 0
 			}
 			maxAlerts++
 		} else if response != nil && response.StatusCode == 200 {

@@ -37,6 +37,10 @@ nfpms:
     id: hhchecker
     package_name: hhchecker
     file_name_template: "{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}"
+    replacements:
+      386: i386
+      amd64: x86_64
+      darwin: macos
     vendor: Alex Shamuel
     homepage: https://theshamuel.com
     maintainer: Alex Shamuel <theshamuel@gmail.com>
