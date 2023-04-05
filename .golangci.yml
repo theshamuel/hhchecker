@@ -8,9 +8,7 @@ linters:
 
   enable:
     - stylecheck    #Stylecheck is a replacement for golint
-    - interfacer    #Linter that suggests narrower interface types
     - unconvert     #Remove unnecessary type conversions
-    - structcheck   #Finds unused struct fields
     - errcheck      #Errcheck is a program for checking for unchecked errors in go programs. These unchecked errors can be critical bugs in some cases
     - gosec         #Inspects source code for security problems
     - gocyclo       #Computes and checks the cyclomatic complexity of functions
@@ -19,11 +17,10 @@ linters:
     - misspell      #Finds commonly misspelled English words in comments
     - unparam       #Reports unused function parameters
     - gosimple      #Linter for Go source code that specializes in simplifying a code
-    - deadcode      #Finds unused code
     - typecheck     #Like the front-end of a Go compiler, parses and type-checks Go code
     - ineffassign   #Detects when assignments to existing variables are not used
-    - varcheck      #Finds unused global variables and constants
-    - golint        #Golint differs from gofmt. Gofmt reformats Go source code, whereas golint prints out style mistakes
+    - unused        #Finds unused global variables and constants
+    - revive        #Fast, configurable, extensible, flexible, and beautiful linter for Go.
     - nakedret      #Finds naked returns in functions greater than a specified function length
     - prealloc      #Finds slice declarations that could potentially be preallocated
     - staticcheck   #Staticcheck is a go vet on steroids, applying a ton of static analysis checks
@@ -36,4 +33,4 @@ output:
   format: tab
 
 service:
-  golangci-lint-version: 1.20.x
+  golangci-lint-version: 1.52.x

@@ -1,4 +1,4 @@
-FROM ghcr.io/theshamuel/baseimg-go-build:1.20.1 as builder
+FROM ghcr.io/theshamuel/baseimg-go-build:1.20.1-1 as builder
 
 ARG VER
 ARG SKIP_TEST

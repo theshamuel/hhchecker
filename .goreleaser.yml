@@ -20,11 +20,15 @@ builds:
     ldflags: "-s -w -X main.version={{.Tag}}-{{.ShortCommit}}-{{.CommitDate}}"
 
 archives:
-  - name_template: "{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}"
-    replacements:
-      386: i386
-      amd64: x86_64
-      darwin: macos
+  - id: hhchecker
+    rlcp: true
+    name_template: >-
+      {{ .ProjectName }}_{{ .Tag }}_
+      {{- if eq .Os "darwin" }}MacOS_
+      {{- else }}{{ title .Os }}_{{ end }}
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
     format_overrides:
       - goos: windows
         format: zip
@@ -36,11 +40,13 @@ nfpms:
   -
     id: hhchecker
     package_name: hhchecker
-    file_name_template: "{{.ProjectName}}_{{.Tag}}_{{.Os}}_{{.Arch}}"
-    replacements:
-      386: i386
-      amd64: x86_64
-      darwin: macos
+    file_name_template: >-
+      {{ .ProjectName }}_{{ .Tag }}_
+      {{- if eq .Os "darwin" }}MacOS_
+      {{- else }}{{ title .Os }}_{{ end }}
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
     vendor: Alex Shamuel
     homepage: https://theshamuel.com
     maintainer: Alex Shamuel <theshamuel@gmail.com>

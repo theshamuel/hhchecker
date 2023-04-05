@@ -2,7 +2,7 @@ package provider
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 )
@@ -13,10 +13,10 @@ type Telegram struct {
 	ChannelID   string
 	ChannelName string
 	Message     string
-	Provider Provider
+	Provider    Provider
 }
 
-//Send sending text message into public telegram channel
+// Send sending text message into public telegram channel
 func (s *Telegram) Send() error {
 	urlPattern := "https://api.telegram.org/bot%s/sendMessage?chat_id=%s&text=%s"
 	channel := s.ChannelID
@@ -36,14 +36,14 @@ func (s *Telegram) Send() error {
 		return err
 	}
 	if res.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(res.Body)
+		body, _ := io.ReadAll(res.Body)
 		log.Printf("[ERROR] Telegram response bad status: %s\n", res.Status)
 		log.Printf("[ERROR] Telegram response bad body: %s\n", string(body))
 	}
 	return nil
 }
 
-//GetID get Provider ID
+// GetID get Provider ID
 func (s *Telegram) GetID() ID {
 	return s.Provider.GetID()
 }

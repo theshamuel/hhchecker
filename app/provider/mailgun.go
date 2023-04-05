@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime/multipart"
 	"net/http"
@@ -19,7 +18,7 @@ type Mailgun struct {
 	Provider Provider
 }
 
-//Send sending email via MailGun
+// Send sending email via MailGun
 func (s *Mailgun) Send() (err error) {
 	url := fmt.Sprintf("https://api.mailgun.net/v3/%s/messages", s.Domain)
 	var b bytes.Buffer
@@ -53,7 +52,7 @@ func (s *Mailgun) Send() (err error) {
 	}
 
 	if res.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(res.Body)
+		body, _ := io.ReadAll(res.Body)
 		log.Printf("[ERROR] Mailgun response bad status: %s\n", res.Status)
 		log.Printf("[ERROR] Mailgun response bad body: %s\n", string(body))
 	}
@@ -61,7 +60,7 @@ func (s *Mailgun) Send() (err error) {
 	return err
 }
 
-//GetID get Provider ID
+// GetID get Provider ID
 func (s *Mailgun) GetID() ID {
 	return s.Provider.GetID()
 }
