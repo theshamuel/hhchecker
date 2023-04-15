@@ -24,10 +24,11 @@ RUN \
 
 
 RUN \
-    if [ -z "$VER" ] ; then \
-    version="test" && \
+    ref=$(git describe --tags --exact-match 2> /dev/null || git symbolic-ref -q --short HEAD); \
+    version=${ref}_$(git log -1 --format=%h)_$(date +%Y%m%dT%H:%M:%S); \
+    if [ -n "$VER" ] ; then \
+    version=${VER}_${version}; fi; \
     echo "version=$version"; \
-    else version=${VER}; fi && \
     go build -o hhchecker -ldflags "-X main.version=$version -s -w" .
 
 FROM ghcr.io/theshamuel/baseimg-go-app:1.0-alpine3.17
