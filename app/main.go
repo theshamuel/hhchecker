@@ -48,25 +48,14 @@ var version = "unknown"
 
 func main() {
 	parseFlags()
+
+	var cnf *config.Config
 	if opts.Config.Enabled {
-		cnf := &config.Config{
+		cnf = &config.Config{
 			FileName: opts.Config.FileName,
 		}
-		var err error
-		var co *config.CommonOpts
-		if co, err = cnf.GetCommon(); err != nil {
-			panic(fmt.Errorf("[ERROR] can not read config file, %w", err))
-		}
-		opts.URL = co.URL
-		opts.Debug = co.Debug
-		opts.Timeout = co.Timeout
-		opts.MaxAlerts = co.MaxAlerts
-		log.Printf("[DEBUG] config: %+v", cnf.File)
 	}
 
-	setupLogLevel(opts.CommonOpts.Debug)
-
-	log.Printf("[INFO] Starting Health checker for %s:%s ...\n", opts.CommonOpts.URL, version)
 	var client = &http.Client{Timeout: 3 * time.Second}
 	var maxAlerts = int8(0)
 	var providers []provider.Interface
@@ -104,23 +93,36 @@ func main() {
 
 	if opts.Config.Enabled {
 		var err error
-		cnf := config.Config{
-			FileName: opts.Config.FileName,
+		var co *config.CommonOpts
+
+		if co, err = cnf.GetCommon(); err != nil {
+			panic(fmt.Errorf("[ERROR] can not read config file, %w", err))
 		}
+		opts.URL = co.URL
+		opts.Debug = co.Debug
+		opts.Timeout = co.Timeout
+		opts.MaxAlerts = co.MaxAlerts
+		log.Printf("[DEBUG] config: %+v", cnf.File)
+
 		if providers, err = cnf.GetProviders(client); err != nil {
 			panic(fmt.Errorf("[ERROR] can not read config file, %w", err))
 		}
 	}
 
-	log.Printf("[DEBUG] cli options: %+v", opts)
+	setupLogLevel(opts.Debug)
 
-	for range time.Tick(opts.CommonOpts.Timeout) {
-		response, err := http.Get(opts.CommonOpts.URL)
-		log.Printf("[DEBUG] response: %+v", response)
+	log.Printf("[DEBUG] options: %+v", opts)
+	log.Printf("[DEBUG] providers: %+v", providers)
+
+	log.Printf("[INFO] Starting Health checker for %s:[version: %s] ...\n", opts.URL, version)
+
+	for range time.Tick(opts.Timeout) {
+		response, err := http.Get(opts.URL)
+		log.Printf("[DEBUG] Get response: %+v", response)
 		if err != nil || response.StatusCode != 200 {
-			if maxAlerts >= opts.CommonOpts.MaxAlerts {
+			if maxAlerts >= opts.MaxAlerts {
 				for _, provider := range providers {
-					if err := provider.Send(); err != nil {
+					if err = provider.Send(); err != nil {
 						log.Printf("[ERROR] error occurs during sending [%s] message: %+v", provider.GetID(), err)
 					}
 				}
@@ -153,7 +155,7 @@ func setupLogLevel(debug bool) {
 
 	if debug {
 		log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile)
-		filter.MinLevel = logutils.LogLevel("DEBUG")
+		filter.MinLevel = "DEBUG"
 	}
 	log.SetOutput(filter)
 }

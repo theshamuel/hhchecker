@@ -72,6 +72,7 @@ func (s *Config) GetCommon() (*CommonOpts, error) {
 		Debug:     s.File.Debug,
 	}, nil
 }
+
 func (s *Config) GetProviders(client *http.Client) ([]provider.Interface, error) {
 	s.Lock()
 	defer s.Unlock()
